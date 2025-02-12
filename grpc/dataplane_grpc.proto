@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package dataplane;
+
+option go_package = "dataplane/grpc"; // Adjust based on your project
+
+service DataplaneService {
+    rpc GetGlobalConfig(GetGlobalConfigRequest) returns (GlobalConfigResponse);
+
+    rpc CheckResourceVersion(CheckResourceVersionRequest) returns (CheckResourceVersionResponse);
+
+    rpc UpdateGlobalConfig(UpdateGlobalConfigRequest) returns (GlobalConfigResponse);
+}
+
+message GlobalConfig {
+    string generation = 1;
+    repeated Vpc vpcs = 2;
+    repeated PeeringInterface pifs = 3;
+    repeated PeeringPolicy policies = 4;
+}
+
+message Vpc {
+    string name = 1;
+    repeated Subnet subnets = 2;
+}
+
+message Subnet {
+    string name = 1;
+    string cidr = 2;
+    uint32 vni = 3;
+}
+
+message PeeringInterface {
+    string name = 1;
+    string vpc = 2;
+    uint32 type = 3;
+    repeated string endpoints = 4;
+    repeated string ips = 5;
+}
+
+message PeeringPolicy {
+    string name = 1;
+    repeated string pifs = 2;
+}
+
+message GetGlobalConfigRequest {}
+
+message GlobalConfigResponse {
+    string message = 1;
+    GlobalConfig config = 2;
+}
+
+message GetGenerationRequest {}
+
+message GetGenerationResponse {
+    string generation = 1;
+}
+
+message UpdateGlobalConfigRequest {
+    GlobalConfig config = 1;
+}
+
