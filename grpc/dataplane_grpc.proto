@@ -1,62 +1,75 @@
 syntax = "proto3";
 
-package dataplane;
+package config;
 
-option go_package = "dataplane/grpc"; // Adjust based on your project
+option go_package = "dataplane/grpc"
 
-service DataplaneService {
-    rpc GetGlobalConfig(GetGlobalConfigRequest) returns (GlobalConfigResponse);
-
-    rpc CheckResourceVersion(CheckResourceVersionRequest) returns (CheckResourceVersionResponse);
-
-    rpc UpdateGlobalConfig(UpdateGlobalConfigRequest) returns (GlobalConfigResponse);
-}
-
-message GlobalConfig {
-    string generation = 1;
-    repeated Vpc vpcs = 2;
-    repeated PeeringInterface pifs = 3;
-    repeated PeeringPolicy policies = 4;
-}
-
-message Vpc {
-    string name = 1;
-    repeated Subnet subnets = 2;
-}
-
-message Subnet {
-    string name = 1;
-    string cidr = 2;
-    uint32 vni = 3;
-}
-
-message PeeringInterface {
-    string name = 1;
-    string vpc = 2;
-    uint32 type = 3;
-    repeated string endpoints = 4;
-    repeated string ips = 5;
-}
-
-message PeeringPolicy {
-    string name = 1;
-    repeated string pifs = 2;
+service ConfigService {
+    rpc GetGlobalConfig (GetGlobalConfigRequest) returns (GlobalConfig);
+    rpc UpdateGlobalConfig (UpdateGlobalConfigRequest) returns (UpdateGlobalConfigResponse);
+    rpc CheckConfigGeneration (CheckConfigGenerationRequest) returns (CheckConfigGenerationResponse);
 }
 
 message GetGlobalConfigRequest {}
-
-message GlobalConfigResponse {
-    string message = 1;
-    GlobalConfig config = 2;
-}
-
-message GetGenerationRequest {}
-
-message GetGenerationResponse {
-    string generation = 1;
-}
 
 message UpdateGlobalConfigRequest {
     GlobalConfig config = 1;
 }
 
+message UpdateGlobalConfigResponse {
+    bool status = 1;
+    string message = 2;
+}
+
+message CheckConfigGenerationRequest {}
+
+message CheckConfigGenerationResponse {
+    uint64 generation = 1;
+}
+
+message Subnet {
+    string name = 1;
+    string prefix = 2;
+    uint32 vni = 3;
+}
+
+message VRF {
+    string name = 1;
+    repeated Subnet subnets = 2;
+}
+
+message Interface {
+    string name = 1;
+    uint32 index = 2;
+    string type = 3;
+    string address = 4;
+    string pci = 5;
+    uint32 vni = 6;
+}
+
+message PeeringIPs {
+    repeated string cidr = 1;
+    repeated string not = 2;
+}
+
+message PeeringAs {
+    repeated string cidr = 1;
+    repeated string not = 2;
+}
+
+message PeeringEntry {
+    PeeringIPs ips = 1;
+    PeeringAs as = 2;
+}
+
+message Peering {
+    string name = 1;
+    map<string, PeeringEntry> entries = 2;
+}
+
+message GlobalConfig {
+    repeated VRF vrfs = 1;
+    repeated Interface interfaces = 2;
+    repeated Peering peerings = 3;
+    uint64 generation = 4;
+}
